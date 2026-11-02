@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tank System · Cohort Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+--bg:#eef2f3;--tx:#1b2a33;--mu:#5b6b73;--ln:#d3dadd;--ac:#0f6e8c;--in:#fff;--e:#b23a5a;--h:#c98a12;--f:#2b8a57}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#12191d;--tx:#e6eef1;--mu:#92a3ab;--ln:#2a373d;--ac:#4fb4d3;--in:#1a242a;--e:#e0708f;--h:#e4aa3a;--f:#55b883}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#12191d;--tx:#e6eef1;--mu:#92a3ab;--ln:#2a373d;--ac:#4fb4d3;--in:#1a242a;--e:#e0708f;--h:#e4aa3a;--f:#55b883}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:12px 16px 80px}
+h1{font-size:22px;font-weight:800;margin:8px 0}
+h2{font-size:17px;font-weight:800;margin:0 0 8px}
+h2 small{font-weight:400;color:var(--mu);font-size:13px;margin-left:6px}
+section{padding:16px 0;border-top:1px solid var(--ln)}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--ln)}
+nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mu);padding:10px 12px;font:inherit;font-weight:600;cursor:pointer}
+nav button.on{color:var(--tx);border-color:var(--ac)}
+button,select,input,textarea{font:inherit;color:var(--tx)}
+input,select,textarea{background:var(--in);border:1px solid var(--ln);border-radius:6px;padding:6px 8px;width:100%}
+button.b{background:var(--ac);color:var(--in);border:0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;margin-top:8px}
+button.g{background:none;border:1px solid var(--ln);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--mu)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+label{display:block;font-size:13px;color:var(--mu);margin:6px 0}
+.sl{display:grid;grid-template-columns:70px 1fr 28px;gap:8px;align-items:center;color:var(--tx);font-size:15px}
+.sl input{padding:0;border:0;background:none}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+#gauge{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;height:34px;margin:6px 0 4px}
+#gauge i{background:var(--ln);border-radius:2px}
+#gauge i.on{background:var(--c)}
+.pill{display:inline-block;font-weight:800;padding:1px 10px;border-radius:99px;color:var(--in)}
+.EMPTY{background:var(--e)}.HALF{background:var(--h)}.FULL{background:var(--f)}
+.mu{color:var(--mu);font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dotted var(--ln)}
+.bar{height:8px;background:var(--ln);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--f)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--ln)}
+.chip{display:inline-block;border:1px solid var(--ln);border-radius:99px;padding:2px 10px;margin:2px 4px 2px 0;font-size:13px}
+.chip.new{border-color:var(--ac);color:var(--ac);font-weight:600}
+textarea{min-height:60px}
+details{margin-top:8px}
+</style></head>
+<body><main>
+<h1>Tank System</h1>
+<p class="mu" style="margin:0 0 8px">Cohort edition. Free for our group. Your check-ins stay private in this browser.</p>
+<nav id="tabs"></nav>
+<div id="app"></div>
+</main>
+<script>
+const NEEDS=['Regulate','Activate','Reset','Express','Connect','Nourish','Delight'],RK={EMPTY:1,HALF:2,FULL:3};
+const PLAY={EMPTY:['Activate','Delight','Connect'],HALF:['Regulate','Reset','Express','Delight'],FULL:['Activate','Connect']};
+const TIPS={EMPTY:'Keep it small. Move first, then one Delight or Connect action. Make Nourish a specific action.',HALF:'Your default mode. One Regulate or Reset action, plus a mood-floor action.',FULL:'Hardest task first. Use movement for momentum and add a Connect action.'};
+const WD=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],TABS=['Today','Habits','Goals','Insights','Setup'];
+const BANK=[['Attend a community/social activity','Connect'],['Wash the dishes','Reset'],['Do nothing for 10 minutes','Regulate'],['Take a walk for 5 minutes','Activate'],['Do a short strength session','Activate'],['Make something','Express'],['Text a friend one sentence','Connect'],['Put on a favorite song','Delight'],['Watch something silly','Delight'],['Drink a glass of water','Nourish'],['Eat something with protein','Nourish'],['Stretch for 3 minutes','Regulate'],['Tidy one surface','Reset'],['Doodle for 5 minutes','Express']];
+const HAB=[['Log my tank',1],['5-minute walk',1],['Drink a glass of water',1],['Tidy one surface',2],['Short strength session',3]];
+const CWK=[['Intentions',0],['Work session 1',1],['Optional check-in',0],['Work session 2',1],['Optional check-in',0],['Work session 3',1],['Celebration call',0]];
+const K='tank-cohort-v3',$=s=>document.querySelector(s);
+let S,tab='Today',armed=false;
+const def=()=>({set:{em:15,fu:24,tk:[2,4,6],sd:4,mu:5,cs:'2026-11-15'},days:{},care:[],bank:BANK.map(b=>[...b]),habits:HAB.map((h,i)=>({id:'h'+i,name:h[0],min:h[1]})),hl:{},goals:[],gl:[],wk:{}});
+try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+S=S||def();
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0'),fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const td=()=>fmt(new Date()),dt=s=>new Date(s+'T12:00'),add=(s,n)=>{const d=dt(s);d.setDate(d.getDate()+n);return fmt(d)};
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null,f1=v=>v==null?'–':v.toFixed(1),pc=v=>v==null?'–':Math.round(v*100)+'%';
+const tank=t=>t<=S.set.em?'EMPTY':t>=S.set.fu?'FULL':'HALF';
+const days=()=>Object.entries(S.days).map(([d,v])=>{const t=v.mood+v.motion+v.mindset;return{...v,d,t,k:tank(t)}});
+const HV={Yes:1,Somewhat:.5,No:0};
+const stat=(f)=>{const c=S.care.filter(f),r=c.filter(x=>x.h).map(x=>HV[x.h]);return{n:c.length,chg:mean(c.map(x=>x.a-x.b)),hr:mean(r)}};
+const flag=n=>n==0?'untested':n<S.set.mu?'needs more data':'reliable';
+const opts=(a,s)=>a.map(o=>`<option ${o==s?'selected':''}>${esc(o)}</option>`).join('');
+const gauge=(t,k)=>Array.from({length:30},(_,i)=>`<i class="${i<t?'on':''}" ${i<t?`style="--c:var(--${k[0].toLowerCase()})"`:''}></i>`).join('');
+const nz=(o,k,d)=>o&&o[k]!=null?o[k]:d;
+const cday=t=>{const i=Math.round((dt(t)-dt(S.set.cs||'2000-01-01'))/864e5);return S.set.cs&&i>=0&&i<7?CWK[i]:null};
+const isSess=t=>{const c=cday(t);return c?!!c[1]:dt(t).getDay()==S.set.sd};
+const ml=x=>dt(x).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+const week=()=>{const t=td(),cs=S.set.cs;if(!cs)return '';const d0=Math.round((dt(cs)-dt(t))/864e5);
+ const rows=CWK.map((c,i)=>{const d=add(cs,i);return `<div class="row"${d==t?' style="font-weight:800"':''}><span>${ml(d)}</span><span>${c[0]}${d==t?' · today':''}</span></div>`}).join('');
+ return `<section><h2>Cohort week<small>${d0>0?'starts in '+d0+' day'+(d0>1?'s':''):d0<-6?'week complete':''}</small></h2>${rows}</section>`};
+const V={};
+
+V.Today=()=>{const t=td(),d=S.days[t]||{mood:5,motion:5,mindset:5},wd=dt(t).getDay(),tot=d.mood+d.motion+d.mindset,k=tank(tot);
+ const care=S.care.map((c,i)=>({...c,i})).filter(c=>c.d==t),floor=care.some(c=>['Delight','Connect','Express'].includes(c.need));
+ const need=PLAY[k],items=S.bank.filter(b=>need.includes(b[1])),fresh=items.filter(b=>!stat(x=>x.act==b[0]).n),pick=fresh.length?fresh[Math.floor(dt(t)/864e5)%fresh.length]:null;
+ const ss=nz(d,'ss',isSess(t)?1:0);
+ return week()+`<section><h2>Check-in<small>${t}${isSess(t)?' (session day)':''}</small></h2>`+
+ [['mood','Mood'],['motion','Motion'],['mindset','Mindset']].map(([x,l])=>`<label class="sl">${l}<input type="range" min="1" max="10" value="${d[x]}" data-k="${x}"><b id="v_${x}">${d[x]}</b></label>`).join('')+
+ `<div id="gauge">${gauge(tot,k)}</div><div><b id="tot">${tot}</b>/30 <span id="pill" class="pill ${k}">${k}</span> <span class="mu" id="tl">${S.set.tk[RK[k]-1]} extra tasks today</span></div>
+ <div class="g2"><label>Logged<select id="tm">${opts(['Morning','Evening'],d.tm)}</select></label>
+ <label>Hit wake goal?<select id="wk"><option value="">–</option><option value="Y" ${d.wk=='Y'?'selected':''}>Yes</option><option value="N" ${d.wk=='N'?'selected':''}>No</option></select></label>
+ <label>Session day?<select id="ss"><option value="0">No</option><option value="1" ${ss?'selected':''}>Yes</option></select></label>
+ <label>Tasks done<input id="dn" type="number" min="0" value="${d.dn||0}"></label></div>
+ <label>Note<input id="nt" value="${esc(d.nt)}"></label><button class="b" data-a="saveday">Save check-in</button></section>
+ <section><h2>Care plan<small>mood floor: ${floor?'done':'not yet'}</small></h2><p>${TIPS[k]}</p>
+ ${pick?`<span class="chip new">Try today: ${esc(pick[0])} (${pick[1]})</span><br>`:''}
+ ${items.map(b=>{const s=stat(x=>x.act==b[0]);return `<span class="chip">${esc(b[0])} <span class="mu">${s.n?s.n+'x, '+(s.chg==null?'':(s.chg>=0?'+':'')+f1(s.chg)+', ')+flag(s.n):'untested'}</span></span>`}).join('')}
+ </section><section><h2>Log a care action</h2>
+ <div class="g2"><label>Need<select id="nd">${opts(NEEDS)}</select></label><label>Activity<select id="ac">${opts(S.bank.filter(b=>b[1]==NEEDS[0]).map(b=>b[0]))}</select></label>
+ <label>Mood before (1 to 10)<input id="bf" type="number" min="1" max="10" value="${d.mood}"></label><label>Mood after (1 to 10)<input id="af" type="number" min="1" max="10" value="${d.mood}"></label></div>
+ <label>Did it help?<select id="hp"><option value="">–</option><option>Yes</option><option>Somewhat</option><option>No</option></select></label>
+ <button class="b" data-a="addcare">Add care action</button>
+ ${care.map(c=>`<div class="row"><span>${esc(c.act)} <span class="mu">${c.need}, ${c.b} to ${c.a}${c.h?', '+c.h:''}</span></span><button class="g" data-a="delcare" data-v="${c.i}">Remove</button></div>`).join('')}</section>`};
+
+V.Habits=()=>{const t=td(),dd=S.days[t],cur=dd?RK[tank(dd.mood+dd.motion+dd.mindset)]:0,last=[6,5,4,3,2,1,0].map(n=>add(t,-n));
+ const rows=S.habits.map((h,i)=>{const done=d=>(S.hl[d]||[]).includes(h.id);let st=0,x=done(t)?t:add(t,-1);while(done(x)&&st<999){st++;x=add(x,-1)}
+  const poss=Object.keys(S.days).filter(d=>d>add(t,-28)&&d<=t&&RK[tank(S.days[d].mood+S.days[d].motion+S.days[d].mindset)]>=h.min),dn=poss.filter(done).length,opt=cur&&cur<h.min;
+  return `<div class="row"><label style="margin:0;color:var(--tx)"><input type="checkbox" style="width:auto" data-a="ht" data-v="${h.id}" ${done(t)?'checked':''}> ${esc(h.name)} ${opt?'<span class="mu">(optional on this tank)</span>':''}</label>
+  <span class="mu">${last.map(d=>done(d)?'●':'○').join('')} streak ${st} · 28d ${poss.length?dn+'/'+poss.length:'–'}</span></div>`}).join('');
+ return `<section><h2>Today<small>dots show the last 7 days</small></h2>${rows||'<p class="mu">No habits yet. Add one below.</p>'}</section>
+ <section><h2>Customise habits</h2>${S.habits.map((h,i)=>`<div class="g3"><input data-p="habits.${i}.name" value="${esc(h.name)}" aria-label="Habit name"><select data-p="habits.${i}.min" data-n="1" aria-label="Counts when tank is">${[[1,'Any tank'],[2,'HALF or FULL'],[3,'FULL only']].map(o=>`<option value="${o[0]}" ${o[0]==h.min?'selected':''}>${o[1]}</option>`).join('')}</select><button class="g" data-a="delhab" data-v="${i}">Remove</button></div>`).join('')}
+ <div class="g3" style="margin-top:8px"><input id="hn" placeholder="New habit"><select id="hm"><option value="1">Any tank</option><option value="2">HALF or FULL</option><option value="3">FULL only</option></select><button class="g" data-a="addhab">Add</button></div>
+ <p class="mu">A habit only counts toward its 28-day rate on logged days where your tank reached its minimum.</p></section>`};
+
+V.Goals=()=>{const t=td();
+ const cards=S.goals.map((g,i)=>{const cur=g.start+S.gl.filter(x=>x.id==g.id).reduce((a,x)=>a+x.amt,0),p=g.target==g.start?0:Math.max(0,Math.min(1,(cur-g.start)/(g.target-g.start)));
+  let pace='In progress';if(p>=1)pace='Done';else if(g.dl&&g.dl>g.s){const e=Math.max(0,Math.min(1,(dt(t)-dt(g.s))/(dt(g.dl)-dt(g.s))));pace=p>=e-.1?'On track':'Behind'}
+  const left=g.dl?Math.round((dt(g.dl)-dt(t))/864e5):null;
+  return `<section><h2>${esc(g.name)}<small>${pace}${left!=null?' · '+left+' days left':''}</small></h2><div class="bar"><i style="width:${p*100}%"></i></div>
+  <p class="mu">${cur} of ${g.target} ${esc(g.unit)} (${pc(p)})${g.why?' · '+esc(g.why):''}</p>
+  <label>Next step <input data-p="goals.${i}.next" value="${esc(g.next)}"></label>
+  <div class="g3"><input id="g_${g.id}" type="number" value="1" aria-label="Amount"><button class="g" data-a="gadd" data-v="${g.id}">Add progress</button><span></span></div>
+  <details><summary class="mu">Edit goal</summary>
+  <label>Name<input data-p="goals.${i}.name" value="${esc(g.name)}"></label><label>Why it matters<input data-p="goals.${i}.why" value="${esc(g.why)}"></label>
+  <div class="g2"><label>Start value<input type="number" data-n="1" data-p="goals.${i}.start" value="${g.start}"></label><label>Target<input type="number" data-n="1" data-p="goals.${i}.target" value="${g.target}"></label>
+  <label>Unit<input data-p="goals.${i}.unit" value="${esc(g.unit)}"></label><label>Deadline<input type="date" data-p="goals.${i}.dl" value="${g.dl||''}"></label></div>
+  <button class="g" data-a="delgoal" data-v="${i}">Remove goal</button></details></section>`}).join('');
+ return `${cards||'<section><p class="mu">No goals yet. Add your first below.</p></section>'}
+ <section><h2>Add a goal</h2><label>Name<input id="gn"></label><label>Why it matters<input id="gy"></label>
+ <div class="g2"><label>Start value<input id="gs" type="number" value="0"></label><label>Target<input id="gt" type="number" value="10"></label><label>Unit<input id="gu" placeholder="sections, miles, sessions"></label><label>Deadline<input id="gd" type="date"></label></div>
+ <label>First next step<input id="gx"></label><button class="b" data-a="addgoal">Add goal</button></section>`};
+
+V.Insights=()=>{const D=days(),n=D.length,A=k=>mean(D.map(d=>d[k]));
+ const wsd=add(td(),-dt(td()).getDay()),wsd7=add(wsd,7),W=D.filter(d=>d.d>=wsd&&d.d<wsd7),wk=S.wk[wsd]||{};
+ const tk=['EMPTY','HALF','FULL'].map(k=>{const x=D.filter(d=>d.k==k);return `<tr><td>${k}</td><td>${x.length}</td><td>${n?pc(x.length/n):'–'}</td><td>${f1(mean(x.map(d=>d.t)))}</td><td>${f1(mean(x.map(d=>d.mood)))}</td></tr>`}).join('');
+ const wd=WD.map((w,i)=>{const x=D.filter(d=>dt(d.d).getDay()==i);return{w,n:x.length,a:mean(x.map(d=>d.t))}}),best=wd.filter(x=>x.a!=null),
+  mx=best.length?best.reduce((a,b)=>b.a>a.a?b:a):null,mn=best.length?best.reduce((a,b)=>b.a<a.a?b:a):null;
+ const ssd=mean(D.filter(d=>(nz(d,'ss',0))==1).map(d=>d.t)),oth=mean(D.filter(d=>(nz(d,'ss',0))!=1).map(d=>d.t));
+ const wkY=D.filter(d=>d.wk=='Y').length,wkN=D.filter(d=>d.wk=='N').length,fl=D.filter(d=>S.care.some(c=>c.d==d.d&&['Delight','Connect','Express'].includes(c.need))).length;
+ const nd=NEEDS.map(x=>{const s=stat(c=>c.need==x);return `<tr><td>${x}</td><td>${s.n}</td><td>${s.chg==null?'–':(s.chg>=0?'+':'')+f1(s.chg)}</td><td>${pc(s.hr)}</td><td class="mu">${flag(s.n)}</td></tr>`}).join('');
+ const D2=[...D].sort((a,b)=>a.d<b.d?-1:1),B=D2.slice(0,7),N=D2.slice(-7),sh=x=>x.length?x.filter(d=>d.k=='EMPTY').length/x.length:null;
+ const sb=[['Average mood',mean(B.map(d=>d.mood)),mean(N.map(d=>d.mood)),f1],['EMPTY share of days',sh(B),sh(N),pc],['Average total',mean(B.map(d=>d.t)),mean(N.map(d=>d.t)),f1]].map(r=>`<tr><td>${r[0]}</td><td>${r[3](r[1])}</td><td>${r[3](r[2])}</td></tr>`).join('');
+ return `<section><h2>Snapshot<small>${n} days logged</small></h2>${n?'':'<p class="mu">Save a check-in on Today to start seeing patterns.</p>'}
+ <table><tr><td>Average mood / motion / mindset</td><td>${f1(A('mood'))} / ${f1(A('motion'))} / ${f1(A('mindset'))}</td></tr><tr><td>Average total</td><td>${f1(A('t'))}/30</td></tr>
+ <tr><td>Best / hardest day</td><td>${mx?mx.w+' / '+mn.w:'–'}</td></tr><tr><td>Session days vs other days</td><td>${f1(ssd)} vs ${f1(oth)}</td></tr>
+ <tr><td>Wake goal hit rate</td><td>${wkY+wkN?pc(wkY/(wkY+wkN)):'–'}</td></tr><tr><td>Mood-floor action (share of days)</td><td>${n?pc(fl/n):'–'}</td></tr>
+ <tr><td>Care Bank activities tried</td><td>${S.bank.filter(b=>S.care.some(c=>c.act==b[0])).length} of ${S.bank.length}</td></tr></table></section>
+ <section><h2>Tank mix</h2><table><tr><th>Tank</th><th>Days</th><th>Share</th><th>Avg total</th><th>Avg mood</th></tr>${tk}</table></section>
+ <section><h2>Care needs</h2><table><tr><th>Need</th><th>Used</th><th>Mood change</th><th>Helped</th><th></th></tr>${nd}</table><p class="mu">Rates need ${S.set.mu}+ uses before they are reliable.</p></section>
+ <section><h2>First week vs. now</h2><table><tr><th>Metric</th><th>First 7 days</th><th>Latest 7 days</th></tr>${sb}</table><p class="mu">Compares your first 7 logged days with your most recent 7.</p></section>
+ <section><h2>Weekly review<small>week of ${wsd}</small></h2><p class="mu">${W.length} days logged, average total ${f1(mean(W.map(d=>d.t)))}, ${W.filter(d=>d.k=='EMPTY').length} EMPTY days.</p>
+ ${[['a','What helped?'],['b','What will I change?'],['c','One experiment for next week']].map(([x,l])=>`<label>${l}<textarea data-p="wk.${wsd}.${x}">${esc(wk[x])}</textarea></label>`).join('')}</section>`};
+
+V.Setup=()=>{const s=S.set;
+ return `<section><h2>Tank rules</h2><div class="g2"><label>EMPTY at or below<input type="number" data-n="1" data-p="set.em" value="${s.em}"></label><label>FULL at or above<input type="number" data-n="1" data-p="set.fu" value="${s.fu}"></label>
+ ${['EMPTY','HALF','FULL'].map((k,i)=>`<label>Extra tasks on ${k} days<input type="number" data-n="1" data-p="set.tk.${i}" value="${s.tk[i]}"></label>`).join('')}
+ <label>Session day<select data-n="1" data-p="set.sd">${WD.map((w,i)=>`<option value="${i}" ${i==s.sd?'selected':''}>${w}</option>`).join('')}</select></label>
+ <label>Cohort start date<input type="date" data-p="set.cs" value="${s.cs||''}"></label>
+ <label>Uses before a rate is reliable<input type="number" data-n="1" data-p="set.mu" value="${s.mu}"></label></div>
+ <p class="mu">The cut-offs (15 and 24) are starting estimates. Adjust them after a week of check-ins so they fit you.</p></section>
+ <section><h2>Care Bank<small>${S.bank.length} activities</small></h2>
+ ${S.bank.map((b,i)=>`<div class="g3"><input data-p="bank.${i}.0" value="${esc(b[0])}" aria-label="Activity"><select data-p="bank.${i}.1" aria-label="Need">${opts(NEEDS,b[1])}</select><button class="g" data-a="delbank" data-v="${i}">Remove</button></div>`).join('')}
+ <div class="g3" style="margin-top:8px"><input id="bn" placeholder="New activity"><select id="bd">${opts(NEEDS)}</select><button class="g" data-a="addbank">Add</button></div></section>
+ <section><h2>Backup</h2><p class="mu">Data is saved in this browser only. Copy this text somewhere safe, and paste it back here to restore.</p>
+ <textarea id="bk" style="min-height:90px">${esc(JSON.stringify(S))}</textarea><button class="b" data-a="copy">Copy</button> <button class="b" data-a="imp">Restore from text</button>
+ <button class="g" data-a="reset" style="margin-left:8px">${armed?'Click again to erase everything':'Erase all data'}</button><p class="mu" id="msg"></p></section>`};
+
+function draw(){$('#tabs').innerHTML=TABS.map(t=>`<button class="${t==tab?'on':''}" data-a="tab" data-v="${t}">${t}</button>`).join('');$('#app').innerHTML=V[tab]()}
+const setp=(p,v)=>{const a=p.split('.');let o=S;for(let i=0;i<a.length-1;i++)o=o[a[i]]||(o[a[i]]={});o[a[a.length-1]]=v};
+const val=id=>$('#'+id).value;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.tagName=='INPUT')return;const a=b.dataset.a,v=b.dataset.v,t=td();
+ if(a!='reset')armed=false;
+ if(a=='tab')tab=v;
+ else if(a=='saveday'){const g=k=>+document.querySelector(`[data-k=${k}]`).value;S.days[t]={mood:g('mood'),motion:g('motion'),mindset:g('mindset'),tm:val('tm'),wk:val('wk'),ss:+val('ss'),dn:+val('dn'),nt:val('nt')}}
+ else if(a=='addcare'){S.care.push({d:t,need:val('nd'),act:val('ac'),b:+val('bf'),a:+val('af'),h:val('hp')})}
+ else if(a=='delcare')S.care.splice(+v,1);
+ else if(a=='addhab'){S.habits.push({id:'h'+Date.now(),name:val('hn')||'New habit',min:+val('hm')})}
+ else if(a=='delhab')S.habits.splice(+v,1);
+ else if(a=='addgoal'){S.goals.push({id:'g'+Date.now(),name:val('gn')||'New goal',why:val('gy'),start:+val('gs'),target:+val('gt'),unit:val('gu'),dl:val('gd'),next:val('gx'),s:t})}
+ else if(a=='gadd'){S.gl.push({d:t,id:v,amt:+val('g_'+v)})}
+ else if(a=='delgoal'){const g=S.goals.splice(+v,1)[0];S.gl=S.gl.filter(x=>x.id!=g.id)}
+ else if(a=='addbank'){if(val('bn'))S.bank.push([val('bn'),val('bd')])}
+ else if(a=='delbank')S.bank.splice(+v,1);
+ else if(a=='copy'){const x=$('#bk');x.select();let ok=false;try{navigator.clipboard.writeText(x.value).then(()=>{$('#msg').textContent='Copied.'},()=>{$('#msg').textContent='Press Ctrl/Cmd+C to copy the selected text.'});ok=true}catch(er){}if(!ok)$('#msg').textContent='Press Ctrl/Cmd+C to copy the selected text.';return}
+ else if(a=='imp'){try{const o=JSON.parse(val('bk'));if(!o.set||!o.days)throw 0;S=o;$('#msg').textContent='Restored.'}catch(er){$('#msg').textContent='That text is not a valid backup.';return}}
+ else if(a=='reset'){if(!armed){armed=true;draw();return}armed=false;S=def()}
+ else if(a=='ht'){const x=S.hl[t]||(S.hl[t]=[]),i=x.indexOf(v);i<0?x.push(v):x.splice(i,1)}
+ save();draw()});
+document.addEventListener('change',e=>{const el=e.target;
+ if(el.id=='nd'){$('#ac').innerHTML=opts(S.bank.filter(b=>b[1]==el.value).map(b=>b[0]));return}
+ if(el.dataset.p){setp(el.dataset.p,el.dataset.n?+el.value:el.value);save();if(/^(set|goals)/.test(el.dataset.p))draw()}});
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset.k)return;
+ $('#v_'+el.dataset.k).textContent=el.value;const t=['mood','motion','mindset'].reduce((a,k)=>a+ +document.querySelector(`[data-k=${k}]`).value,0),k=tank(t);
+ $('#tot').textContent=t;$('#pill').textContent=k;$('#pill').className='pill '+k;$('#tl').textContent=S.set.tk[RK[k]-1]+' extra tasks today';$('#gauge').innerHTML=gauge(t,k)});
+draw();
+</script></body></html>
